@@ -4,6 +4,7 @@ class NomadCity
 
   field :user, type: String
   field :nickname, type: String
+  field :avatar, type: String
   field :city, type: String
   field :country, type: String
   field :lat, type: Float
@@ -13,6 +14,7 @@ class NomadCity
     {
       id: _id.to_s,
       user: nickname || user,
+      avatar: avatar,
       city: city,
       country: country,
       lat: lat,
@@ -35,17 +37,24 @@ class NomadCity
 
       # If current NomadCity object is unique (only 1 user in this location),
       # then push and continue iteration
-      (acc.push(record) && next) if same_location.length == 1
+      if same_location.length == 1
+        record[:avatar] = [].push(record[:avatar])
+        record[:nickname] = [].push(record[:nickname])
+        acc.push(record)
+        next
+      end
 
       # Make comma-separated string of nicknames/ids of the nomads in the same city
-      nicknames = same_location.pluck(:nickname).join(', ')
+      nicknames = same_location.pluck(:nickname)
       ids = same_location.pluck(:user).join(', ')
+      avatars = same_location.pluck(:avatar)
 
       # Take first record as an object where we will put our merged string of nicknames
       merged_nomad_city = same_location[0]
       merged_nomad_city.attributes.merge!(
         nickname: nicknames,
-        user: ids
+        user: ids,
+        avatar: avatars
       )
 
       acc.push(merged_nomad_city)
